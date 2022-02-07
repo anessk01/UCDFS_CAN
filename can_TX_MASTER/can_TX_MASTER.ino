@@ -7,6 +7,14 @@
 #define SYNC_SIGNAL 0x69
 #define DEV_ID 0x01
 
+long unsigned int rxId;
+unsigned char len = 0;
+unsigned char rxBuf[8];
+char msgString[128]; // Array to store serial string
+byte data[8];
+MCP_CAN CAN0(10);  // Set CS to pin 10
+
+
 /*********************************************************************************************************
   HELPER FUNCTIONS
 *********************************************************************************************************/
@@ -54,8 +62,8 @@ void CAN_READ()
         if (i == 0 && rxBuf[i] == 0x01)
         {
           sprintf(msgString, " 0x%.2X", rxBuf[i]);
-          digitalWrite(5, status1);
-          status1 = !status1;
+//          digitalWrite(5, status1);
+//          status1 = !status1;
         }
         else
         {
@@ -101,7 +109,7 @@ void CAN_SYNC()  //function for master TX to send a unified sync signal every cy
 
 int simulateSensor(int minDelayMS, int maxDelayMS, int minNumBytes, int maxNumBytes)
 {
-  int sensorVal, timedelay;
+  int sensorVal, timeDelay;
   randomSeed(analogRead(0)); //assumes pin 0 is unused
   sensorVal = random(pow(2, minNumBytes), pow(2, maxNumBytes));
   timeDelay = random(minDelayMS, maxDelayMS + 1);
@@ -109,10 +117,10 @@ int simulateSensor(int minDelayMS, int maxDelayMS, int minNumBytes, int maxNumBy
   return (sensorVal);
 }
 
-void fillDataArray(byte *data, int value, int position)
+void fillDataArray(byte *data, int value, int pos)
 { //data passed by reference
-  if (position < 8)
-    data[position] = value;
+  if (pos < 8)
+    data[pos] = value;
 }
 
 void clearDataArray(byte *data){
@@ -129,20 +137,13 @@ void setup()
 {
   CAN_INIT();
   delay(3000); //allow 3s for all systems to start up
+  clearDataArray(data); //populate data array with zeros
 }
-
-long unsigned int rxId;
-unsigned char len = 0;
-unsigned char rxBuf[8];
-char msgString[128]; // Array to store serial string
-byte data[8];
-clearDataArray();
-MCP_CAN CAN0(10);  // Set CS to pin 10
 
 void loop()
 {
   CAN_SYNC();
-  fillDataArray(data, simulateSensor(), 0);
+  fillDataArray(data, simulateSensor(10, 30, 1, 7), 0);
   CAN_WRITE(data);
   clearDataArray;
 }
