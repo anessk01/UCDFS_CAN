@@ -1,14 +1,17 @@
-// CAN Receive Example
+// Code for a device that is a pure reciever on CAN
 //
 #include <mcp_can.h>
 #include <SPI.h>
+
+#define CAN0_INT 2 // Set INT to pin 2
+#define SYNC_SIGNAL 0x69
+#define DEV_ID 0x03
 
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
 char msgString[128]; // Array to store serial string
 
-#define CAN0_INT 2 // Set INT to pin 2
 MCP_CAN CAN0(10);  // Set CS to pin 10
 
 /*********************************************************************************************************
@@ -75,8 +78,8 @@ void CAN_READ()
 
 void CAN_WRITE(byte *data)
 {
-  // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
-  byte sndStat = CAN0.sendMsgBuf(0x100, 0, 8, data);
+  // send data:  ID = DEV_ID, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
+  byte sndStat = CAN0.sendMsgBuf(DEV_ID, 0, 8, data);
   if (sndStat == CAN_OK)
   {
     Serial.println("Message Sent Successfully!");
@@ -87,6 +90,22 @@ void CAN_WRITE(byte *data)
   }
 }
 
+void CAN_SYNC()  //function for master TX to send a unified sync signal every cycle that marks beginning of transmission
+{
+  byte data[8] = {SYNC_SIGNAL, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  // send data:  ID = DEV_ID, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
+  byte sndStat = CAN0.sendMsgBuf(DEV_ID, 0, 8, data);
+  if (sndStat == CAN_OK)
+  {
+    Serial.println("Message Sent Successfully!");
+  }
+  else
+  {
+    Serial.println("Error Sending Message...");
+  }
+}
+
+
 int simulateSensor(int minDelayMS, int maxDelayMS, int minNumBytes, int maxNumBytes)
 {
   int sensorVal, timedelay;
@@ -95,6 +114,18 @@ int simulateSensor(int minDelayMS, int maxDelayMS, int minNumBytes, int maxNumBy
   timeDelay = random(minDelayMS, maxDelayMS + 1);
   delay(timeDelay);
   return (sensorVal);
+}
+
+void fillDataArray(byte *data, int value, int position)
+{ //data passed by reference
+  if (position < 8)
+    data[position] = value;
+}
+
+void clearDataArray(byte *data){
+  for(int i =0; i<8; i++){
+    fillDataArray(data, 0, i);
+  }
 }
 
 /*********************************************************************************************************
@@ -110,7 +141,6 @@ int status1 = 0;
 
 void loop()
 {
-  delay(3000); //allow 3s for all systems to start up
   CAN
 }
 
