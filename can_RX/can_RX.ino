@@ -61,8 +61,8 @@ void CAN_READ()
         if (i == 0 && rxBuf[i] == 0x01)
         {
           sprintf(msgString, " 0x%.2X", rxBuf[i]);
-          digitalWrite(5, status1);
-          status1 = !status1;
+//          digitalWrite(5, status1);
+//          status1 = !status1;
         }
         else
         {
@@ -108,7 +108,7 @@ void CAN_SYNC()  //function for master TX to send a unified sync signal every cy
 
 int simulateSensor(int minDelayMS, int maxDelayMS, int minNumBytes, int maxNumBytes)
 {
-  int sensorVal, timedelay;
+  int sensorVal, timeDelay;
   randomSeed(analogRead(0)); //assumes pin 0 is unused
   sensorVal = random(pow(2, minNumBytes), pow(2, maxNumBytes));
   timeDelay = random(minDelayMS, maxDelayMS + 1);
@@ -141,7 +141,7 @@ int status1 = 0;
 
 void loop()
 {
-  CAN
+  
 }
 
 /*********************************************************************************************************
